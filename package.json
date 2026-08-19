@@ -1,0 +1,8 @@
+{
+  "name": "dns-preflight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "What breaks if you repoint this domain today. Read-only DNS + RDAP pre-migration check.",
+  "scripts": { "test": "node test/run.mjs", "preflight": "node scripts/preflight.mjs" }
+}
