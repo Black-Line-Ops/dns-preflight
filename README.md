@@ -1,16 +1,42 @@
+<div align="center">
+
 # dns-preflight
 
-**What breaks if you repoint this domain today?**
+### What breaks if you repoint this domain today?
 
-Every DNS tool dumps records. That has never been the problem. The problem is that a migration
-looks fine right up until the part nobody could see — and the part nobody could see is almost
-always email.
+Every DNS tool dumps records. That was never the problem. The problem is that a migration looks
+fine right up until the part nobody could see — and the part nobody could see is almost always
+email.
 
-```bash
-node scripts/preflight.mjs theirdomain.com
-```
+<br>
 
-```
+**[Get started](#installing-it)** · **[What it catches](#catches)** ·
+**[What it cannot do](#limits)** ·
+**[New to Claude Code?](https://blacklineops.ai/claude-code-guide)**
+
+<br>
+
+[![Licence](https://img.shields.io/badge/licence-MIT-EF4444?style=for-the-badge)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-2563EB?style=for-the-badge)](CHANGELOG.md)
+[![Node](https://img.shields.io/badge/node-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero-0891B2?style=for-the-badge)](#what-you-need)
+[![Tests](https://img.shields.io/badge/tests-21%20passing-D946EF?style=for-the-badge)](test/)
+[![Read only](https://img.shields.io/badge/read--only-no%20credentials-16A34A?style=for-the-badge)](#read-only)
+
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-ready-D97757?style=flat-square)](#installing-it)
+[![Codex](https://img.shields.io/badge/Codex-ready-06B6D4?style=flat-square)](#installing-it)
+[![Cursor](https://img.shields.io/badge/Cursor-ready-7C3AED?style=flat-square)](#installing-it)
+[![Windows](https://img.shields.io/badge/Windows-supported-0078D4?style=flat-square)](#what-you-need)
+[![macOS](https://img.shields.io/badge/macOS-supported-8E8E93?style=flat-square)](#what-you-need)
+[![Linux](https://img.shields.io/badge/Linux-supported-FCC624?style=flat-square)](#what-you-need)
+
+</div>
+
+---
+
+```console
+$ node scripts/preflight.mjs blacklineops.ai
+
 dns-preflight  blacklineops.ai
 
   ================================================================
@@ -29,70 +55,116 @@ dns-preflight  blacklineops.ai
     Status: client delete prohibited, client renew prohibited, client transfer
     prohibited, client update prohibited. The registrar will refuse a nameserver
     or transfer change while this is set.
-      -> Unlock it in the registrar control panel first.
+      -> Unlock it in the registrar control panel first. It is usually a single
+         toggle, and worth re-locking afterwards.
+
+  What this could NOT check
+    A zone cannot be enumerated from outside it — ANY and AXFR are both refused.
+    So the 22 records above come from probing 38 common names, not from reading
+    the zone. Anything on an unusual hostname is invisible here.
 ```
 
-**Read-only.** Public DNS over HTTPS and one RDAP call. No credentials, no API key, no account,
-and no write path anywhere in the tool — something holding no token cannot be talked into taking
-a client's mail down.
+<sub>A real report against a real domain. The lock is genuine — it was found while writing the
+tests, by a rule that had been quietly broken until one of them caught it.</sub>
 
-**Zero dependencies.** Node 18+ and nothing else. No `dig`, no `whois`, no `npm install`.
+> [!NOTE]
+> **No account, no API key, nothing to sign up for.** This reads public DNS over HTTPS and makes
+> one RDAP call. Node 18+ and nothing else — no `dig`, no `whois`, no `npm install`.
 
 ---
 
-## The three things it is really looking for
+<a id="catches"></a>
 
-Each one is **silent**. The website keeps working, so nothing looks wrong, and what actually
-broke is discovered days later by a customer who never got a reply.
+## 🚨 The three things it is really looking for
 
-### 1. DNSSEC left on at the registrar
+Each one is **silent**. The website keeps working, so nothing looks wrong, and what actually broke
+is discovered days later by a customer who never got a reply.
+
+### 1 · DNSSEC left on at the registrar
 
 If the parent zone publishes a DS record and you change nameservers, every validating resolver
-rejects the new answers. That is the site *and* the mail, at once, with a SERVFAIL symptom that
-reads as an outage rather than a misconfiguration — and gets misdiagnosed as propagation for
-hours.
+rejects the new answers. That is the site **and** the mail, at once, with a SERVFAIL symptom that
+reads as an outage rather than a misconfiguration — and gets misdiagnosed as propagation for hours.
 
 The report prints the **real DS TTL** as the wait, because it is knowable. Not the usual
 "24 to 48 hours", which is unfalsifiable and usually wrong.
 
-### 2. An MX target inside the zone you are moving
+### 2 · An MX target inside the zone you are moving
 
 The classic shared-hosting shape: MX points at `mail.theirdomain.com`, which is an A record
-*inside* the zone. Move the nameservers and that name stops existing unless somebody recreated
-it. Mail stops. The website is perfect, which is exactly why nobody notices.
+*inside* the zone. Move the nameservers and that name stops existing unless somebody recreated it.
+Mail stops. **The website is perfect**, which is exactly why nobody notices.
 
 The report names the host **and the address to recreate it as** — "recreate mail.example.com"
 without the address has moved the problem, not solved it.
 
-### 3. A registrar lock, or an expiry inside 30 days
+### 3 · A registrar lock, or an expiry inside 30 days
 
 Neither breaks anything by itself. Both stop the change from being possible, on the day, after
 everything else has been arranged.
 
-Plus warnings for long TTLs (how long a mistake stays wrong) and a missing SPF record on a domain
-that receives mail (not caused by the migration, but it will be blamed on it).
+Plus warnings for **long TTLs** (how long a mistake stays wrong) and a **missing SPF** on a domain
+that receives mail — not caused by the migration, but it will be blamed on it.
 
 ---
 
-## What it cannot do, and says so on every report
+<a id="limits"></a>
 
-**A zone cannot be enumerated from outside it.** `ANY` is refused — Cloudflare answers
-`Status 4 / EDE(21) Not Supported` — and `AXFR` is refused everywhere. There is no other
-mechanism.
+## ⚠️ What it cannot do, and says so on every report
+
+> [!IMPORTANT]
+> **A zone cannot be enumerated from outside it.** `ANY` is refused — Cloudflare answers
+> `Status 4 / EDE(21) Not Supported` — and `AXFR` is refused everywhere. There is no other
+> mechanism.
 
 So this probes a **known list** of ~38 names: the apex, `www`, `mail`, `autodiscover`, `smtp`,
 `_dmarc`, the common DKIM selectors, and the handful of hostnames a small site actually uses. It
 reports what it found and never claims to have read the zone.
 
-That limit is printed at the bottom of every report, and again in the header of every exported
-zone file, because the dangerous version of this tool is one that looks complete.
+That limit is printed at the bottom of every report, and again in the header of every exported zone
+file, because **the dangerous version of this tool is one that looks complete.**
 
-> **Always export the real zone from the losing provider if you can, and use this to check that
+> Always export the real zone from the losing provider if you can, and use this to **check that
 > export for gaps.** That is the job it is best at.
 
 ---
 
-## Usage
+<a id="installing-it"></a>
+
+## 📦 Installing it
+
+Works in Claude Code, Codex, Cursor and most other `SKILL.md`-compatible agents.
+
+```bash
+npx skills add Black-Line-Ops/dns-preflight
+```
+
+<details>
+<summary><b>Or clone it and run the script directly</b></summary>
+
+<br>
+
+There is no build step and nothing to install — it is a folder of `.mjs` files.
+
+```bash
+git clone https://github.com/Black-Line-Ops/dns-preflight
+cd dns-preflight
+node scripts/preflight.mjs theirdomain.com
+```
+
+| Host | Install location |
+|---|---|
+| Claude Code (global) | `~/.claude/skills/dns-preflight/` |
+| Codex (global) | `~/.codex/skills/dns-preflight/` |
+| Codex (project) | `.agents/skills/dns-preflight/` |
+
+</details>
+
+---
+
+<a id="using-it"></a>
+
+## ▶️ Using it
 
 ```bash
 node scripts/preflight.mjs theirdomain.com                 # the report
@@ -109,14 +181,14 @@ people to stop running it.
 
 | | |
 |---|---|
-| **GO** | Nothing found that would break on a repoint. Still export the real zone first. |
-| **GO, WITH CARE** | No blockers, but read the findings. Usually long TTLs or a missing SPF. |
-| **NO-GO** | A blocker is live. Fix it before touching nameservers. |
+| 🟢 **GO** | Nothing found that would break on a repoint. Still export the real zone first. |
+| 🟡 **GO, WITH CARE** | No blockers, but read the findings. Usually long TTLs or a missing SPF. |
+| 🔴 **NO-GO** | A blocker is live. Fix it before touching nameservers. |
 
 ### When to run it
 
-- **Before quoting a rebuild**, so "and we'll move your DNS" is priced with the DNSSEC and mail
-  work in it rather than discovered afterwards.
+- **Before quoting a rebuild** — so "and we'll move your DNS" is priced with the DNSSEC and mail
+  work in it, rather than discovered afterwards.
 - **On the morning of every cutover.**
 - **When taking over a client from another agency** — it tells you what you have inherited before
   you are responsible for it.
@@ -124,42 +196,92 @@ people to stop running it.
 
 ---
 
-## Why DoH rather than `dig` or `node:dns`
+<a id="what-you-need"></a>
 
-`dig` is not on Windows and never will be. But the real reason is the resolver.
+## 🧰 What you need
 
-`node:dns` talks to whatever resolver the machine happens to be using, and on a corporate laptop,
-a VPN, or a router doing "DNS optimisation", that is a resolver which lies. A pre-flight that
-reads the wrong zone because the office router served a stale answer is **worse than no
-pre-flight** — it produces a confident report about a domain nobody else can see.
-
-DNS-over-HTTPS goes to a named public resolver over 443, which also means it works on the hotel
-and guest wifi where emergency migrations actually happen.
+| | |
+|---|---|
+| **Node 18 or newer** | For built-in `fetch`. That is the entire dependency list. |
+| **An internet connection** | HTTPS on 443 only — it works on networks that block UDP/53. |
+| **No API key** | There is nothing to sign up for. |
+| **Windows / macOS / Linux** | No `dig`, no `whois`, no shell tools. |
 
 ---
 
-## Known gaps
+<a id="read-only"></a>
+
+## 🔒 Why it holds no credentials
+
+Not an oversight — a design constraint.
+
+This tool exists to be pointed at **other people's live domains**, often under time pressure. A
+tool that holds no token cannot be talked into changing a client's DNS: not by a confused operator,
+not by a misread prompt, not by an agent driving it. There is no write path anywhere in the code,
+and there never will be.
+
+---
+
+<a id="why-doh"></a>
+
+## 🛰️ Why DoH rather than `dig` or `node:dns`
+
+`dig` is not on Windows and never will be. But the real reason is the resolver.
+
+`node:dns` talks to whatever resolver the machine happens to be using, and on a corporate laptop, a
+VPN, or a router doing "DNS optimisation", that is a resolver which lies. **A pre-flight that reads
+the wrong zone is worse than no pre-flight** — it produces a confident report about a domain nobody
+else can see.
+
+DNS-over-HTTPS goes to a named public resolver over 443, which also means it works on the hotel and
+guest wifi where emergency migrations actually happen.
+
+---
+
+<a id="known-gaps"></a>
+
+## 🩺 Known gaps
 
 - **`.io` and `.co` have no IANA RDAP bootstrap entry**, so registrar, expiry and lock status come
-  back **unknown** for them. The report says "unknown", never "no lock found" — absence of data
-  must not read as reassurance.
+  back **unknown** for them. The report says "unknown", never "no lock found" — absence of data must
+  not read as reassurance.
 - **The probe list is the coverage.** A record on an unusual hostname is invisible here.
 - **It reads; it never writes.** By design, permanently.
 
-## Tests
+---
+
+<a id="tests"></a>
+
+## 🧪 Tests
 
 ```bash
 npm test
 ```
 
-21 tests, all offline. Every DNS answer and RDAP response is a stub — a DNS tool whose tests need
-DNS is flaky in exactly the conditions it exists to diagnose.
+21 tests, all offline. Every DNS answer and RDAP response is a stub — **a DNS tool whose tests need
+DNS is flaky in exactly the conditions it exists to diagnose.**
 
-## Companion skills
-
-`scroll-scrub-hero` and `scroll-flight` build the site. This one makes sure pointing the domain at
-it does not take the client's email down on the way.
+One of them earned its keep before this shipped. RFC 9083 writes RDAP status as space-separated
+words (`"client transfer prohibited"`); EPP uses camelCase. The lock check matched only camelCase,
+so a genuinely locked domain reported as **unlocked** — the exact false reassurance this tool exists
+to prevent. Caught by a test built from a real response shape, then confirmed against a live
+registrar.
 
 ---
 
-MIT © 2026 Black Line Ops, LLC
+## 🖤 Built by Black Line Design
+
+We build websites and AI-native software for people who run real operations, out of Tampa Bay,
+Florida. This is the tool we run before we point any client's domain at anything.
+
+Companion skills — [`scroll-scrub-hero`](https://github.com/Black-Line-Ops/scroll-scrub-hero) builds
+the hero. This one makes sure pointing the domain at it does not take the client's email down on
+the way.
+
+**[blacklinedesign.website](https://blacklinedesign.website)** · **[blacklineops.ai](https://blacklineops.ai)**
+
+---
+
+## ⚖️ Licence
+
+MIT © 2026 Black Line Ops, LLC — see [LICENSE](LICENSE).
