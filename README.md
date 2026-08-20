@@ -271,17 +271,78 @@ registrar.
 
 ## 🖤 Built by Black Line Design
 
-We build websites and AI-native software for people who run real operations, out of Tampa Bay,
-Florida. This is the tool we run before we point any client's domain at anything.
+We are a Tampa Bay web studio. We built this because we kept moving other people's domains, and the
+thing that broke was never the website — it was the mail, quietly, discovered three days later by a
+customer who never got a reply. This is the check we run before we point any client's domain at
+anything, packaged and given away.
 
-Companion skills — [`scroll-scrub-hero`](https://github.com/Black-Line-Ops/scroll-scrub-hero) builds
-the hero. This one makes sure pointing the domain at it does not take the client's email down on
-the way.
+<div align="center">
+<br>
 
-**[blacklinedesign.website](https://blacklinedesign.website)** · **[blacklineops.ai](https://blacklineops.ai)**
+[![Website](https://img.shields.io/badge/blacklinedesign.website-101820?style=for-the-badge&logo=googlechrome&logoColor=white)](https://blacklinedesign.website)
+[![Black Line Ops](https://img.shields.io/badge/blacklineops.ai-ff8200?style=for-the-badge)](https://blacklineops.ai)
+
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Black-Line-Ops)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/blacklineops/)
+[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=flat-square&logo=youtube&logoColor=white)](https://youtube.com/@blacklineopsllc)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/blacklineops.llc/)
+[![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=flat-square&logo=facebook&logoColor=white)](https://www.facebook.com/profile.php?id=61591659974557)
+
+</div>
+
+### 🔑 The step after a GO verdict
+
+This tool reads. Actually moving the domain means getting into the registrar, which on a small-
+business job usually means talking a non-technical owner through a control panel they have not
+opened since 2019 — and the wrong move there is a password reset that locks everyone out.
+
+We wrote that up as a plain-English handbook, per registrar, for you to send to a client:
+**[blacklineops.ai/domain-access-guide](https://blacklineops.ai/domain-access-guide)**. It covers
+delegated access (add the agency without handing over the login) wherever the registrar supports
+it, which is the answer you actually want.
+
+New to running skills at all? **[blacklineops.ai/claude-code-guide](https://blacklineops.ai/claude-code-guide)**.
+
+### 🧰 Companion skill
+
+[`scroll-scrub-hero`](https://github.com/Black-Line-Ops/scroll-scrub-hero) builds the hero. This one
+makes sure pointing the domain at it does not take the client's email down on the way.
+
+### 💼 Rather have it done for you?
+
+The tool is free and MIT. But a migration is not really a DNS problem — it is a "who is going to be
+awake at 6am if the mail does not come back" problem. If you would rather hand the whole thing to
+someone, that is the day job. Rates and contact are on
+**[blacklinedesign.website](https://blacklinedesign.website)**.
+
+---
+
+## 💜 Support Black Line Ops
+
+`dns-preflight` is free, MIT-licensed, and has nothing to sign up for — no account, no API key, no
+affiliate links anywhere in it. If it caught something before it cost you a weekend, you can support
+its continued development:
+
+<div align="center">
+  <a href="https://blacklineops.ai/support">
+    <img src="https://img.shields.io/badge/SUPPORT_BLACK_LINE_OPS-DC2626?style=for-the-badge&logo=stripe&logoColor=white" alt="Support Black Line Ops">
+  </a>
+  <br>
+  <sub>Completely optional. This project stays free either way.</sub>
+</div>
+
+### 🐛 Found a bug, or a registrar it reads wrong?
+
+Open an issue: **[github.com/Black-Line-Ops/dns-preflight/issues](https://github.com/Black-Line-Ops/dns-preflight/issues)**.
+
+The most useful report is a **domain and the line it got wrong** — TLD quirks are exactly the class
+of bug this tool is prone to, and one is already documented above (`.io` and `.co` have no RDAP
+bootstrap entry). If it is a lock or expiry that read wrong, say which registrar: RDAP responses
+vary more between registrars than the RFC suggests they should.
 
 ---
 
 ## ⚖️ Licence
 
-MIT © 2026 Black Line Ops, LLC — see [LICENSE](LICENSE).
+MIT © 2026 Black Line Ops, LLC — see [LICENSE](LICENSE). Use it on client work freely, commercial or
+otherwise. If it is useful, a mention is appreciated but not required.
